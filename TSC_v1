@@ -1,0 +1,72 @@
+#test Stablecoin coding in Python - no real world value offered or implied
+
+class TestStablecoin:
+    def __init__(self, name="TestStableCoin123", symbol="TSC", initial_supply=1000000, peg_value=1.0):
+        self.name = name
+        self.symbol = symbol
+        self.total_supply = initial_supply
+        self.peg_value = peg_value  # e.g., 1.0 for 1 USD
+        self.balances = {}  # Dictionary to store user balances
+        self.collateral_reserve = 0  # Simulated collateral reserve
+
+    def mint(self, recipient, amount, collateral_added=0):
+        if amount <= 0:
+            print("Mint amount must be positive.")
+            return
+
+        # Simulate collateral requirements (e.g., overcollateralization)
+        if self.collateral_reserve + collateral_added < (self.total_supply + amount) * self.peg_value:
+            print("Insufficient collateral to mint this amount.")
+            return
+
+        self.total_supply += amount
+        self.balances[recipient] = self.balances.get(recipient, 0) + amount
+        self.collateral_reserve += collateral_added
+        print(f"{amount} {self.symbol} minted for {recipient}. New total supply: {self.total_supply}")
+
+    def burn(self, sender, amount, collateral_released=0):
+        if amount <= 0:
+            print("Burn amount must be positive.")
+            return
+        if self.balances.get(sender, 0) < amount:
+            print(f"Insufficient {self.symbol} balance for {sender}.")
+            return
+
+        self.total_supply -= amount
+        self.balances[sender] -= amount
+        self.collateral_reserve -= collateral_released # Simulate collateral release
+        print(f"{amount} {self.symbol} burned by {sender}. New total supply: {self.total_supply}")
+
+    def transfer(self, sender, recipient, amount):
+        if amount <= 0:
+            print("Transfer amount must be positive.")
+            return
+        if self.balances.get(sender, 0) < amount:
+            print(f"Insufficient {self.symbol} balance for {sender}.")
+            return
+
+        self.balances[sender] -= amount
+        self.balances[recipient] = self.balances.get(recipient, 0) + amount
+        print(f"{amount} {self.symbol} transferred from {sender} to {recipient}.")
+
+    def get_balance(self, address):
+        return self.balances.get(address, 0)
+
+    def get_total_supply(self):
+        return self.total_supply
+
+    def get_collateral_reserve(self):
+        return self.collateral_reserve
+
+# Example Usage
+if __name__ == "__main__":
+    my_stablecoin = TestStablecoin()
+
+    my_stablecoin.mint("Alice", 1000, collateral_added=1000)
+    my_stablecoin.transfer("Alice", "Bob", 200)
+    my_stablecoin.burn("Alice", 300, collateral_released=300)
+
+    print(f"Alice's balance: {my_stablecoin.get_balance('Alice')} {my_stablecoin.symbol}")
+    print(f"Bob's balance: {my_stablecoin.get_balance('Bob')} {my_stablecoin.symbol}")
+    print(f"Total supply: {my_stablecoin.get_total_supply()} {my_stablecoin.symbol}")
+    print(f"Collateral Reserve: {my_stablecoin.get_collateral_reserve()}")
